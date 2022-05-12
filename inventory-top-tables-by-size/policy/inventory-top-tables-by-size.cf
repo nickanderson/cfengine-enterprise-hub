@@ -2,70 +2,39 @@ bundle agent inventory_top_tables_by_size
 # @brief Inventory the tables using the most space
 # @inventory Device Database Table Size $(table_names) - Size in bytes of each table
 {
-  vars:
+    vars:
     cfengine.enterprise_edition.policy_server::
-      "query_output" string => "$(sys.statedir)/cfdb-table-size.csv";
+        "query_output" string => "$(sys.statedir)/cfdb-table-size.json";
+        "psql_table_size_query" string => `SELECT json_agg(t) from( SELECT nspname || '.' || relname AS "relation",
+        pg_total_relation_size(C.oid) AS "total_size"
+        FROM pg_class C
+        LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace)
+        WHERE nspname NOT IN ('pg_catalog', 'information_schema')
+        AND C.relkind <> 'i'
+        ORDER BY pg_total_relation_size(C.oid) DESC
+        Limit 20) t;`;
 
-      "psql_table_size_query"
-        string => `SELECT nspname || '.' || relname AS "relation",
-      pg_total_relation_size(C.oid) AS "total_size"
-      FROM pg_class C
-      LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace)
-      WHERE nspname NOT IN ('pg_catalog', 'information_schema')
-      AND C.relkind <> 'i'
-      ORDER BY pg_total_relation_size(C.oid) DESC
-      Limit 20;`;
+        "psql_cmd" string => "/var/cfengine/bin/psql";
+        "psql_cmd_opts" slist => { "--no-align", "--tuples-only", "cfdb", "-c", `"$(psql_table_size_query)"`, "> $(query_output)" };
 
-      "psql_cmd" string => "$(sys.bindir)/psql";
+        "query_result" data => readjson( "$(query_output)" ), if => fileexists( "$(query_output)" );
+        "table_names" slist => getindices( query_result );
 
-      "psql_cmd_opts"
-        slist => {
-                   "--tuples-only",              # Don't include column names
-                   "--csv",                      # Output in CSV format
-                   "cfdb",                       # Use the cfdb database
-                   "--command",                  # Execute a query
-                   # Note: Quoting is important
-                   `"$(psql_table_size_query)"`, # The Query to execute
-                   "> $(query_output)"           # The file to write query output to (Requires shell!)
-        };
+        "table[$(query_result[$(table_names)][relation])]"
+          string => "$(query_result[$(table_names)][total_size])",
+          unless => regcmp( "public\.__promiselog_.*", "$(query_result[$(table_names)][relation])"),
+          meta => { "inventory", "attribute_name=Device Database Table Size $(query_result[$(table_names)][relation])" };
 
-      # data_readstringarray() is used instead of readcsv() because psql --csv
-      # does not output with proper line endings
+        "promise_log[$(query_result[$(table_names)][relation])]"
+          string => "$(query_result[$(table_names)][total_size])",
+          if => regcmp( "public\.__promiselog_.*", "$(query_result[$(table_names)][relation])");
 
-      "query_result"
-        data => data_readstringarray( "$(query_output)", # File to parse
-                                      "\s*#[^\n]*",      # Strip lines matching
-                                      ",",               # Comma Separated
-                                      inf,               # Max Entries
-                                      inf );             # Max Bytes
-
-      "table_names" slist => getindices( query_result );
-
-      # The __promiselog table is partitioned and made up of many other tables
-      # named for the result and date. It's more useful to have information
-      # about aggregate size than sizes for different days that will churn. So,
-      # we collect those for summing.
-
-      "promise_log[$(table_names)]"
-        string => "$(query_result[$(table_names)])",
-        if => regcmp( "public\.__promiselog_.*", "$(table_names)");
-
-     # We inventory the size of each table except for the __promiselog tables which are summed first.
-
-      "table[$(table_names)]"
-        string => "$(query_result[$(table_names)])",
-        unless => regcmp( "public\.__promiselog_.*", "$(table_names)"),
-        meta => { "inventory", "attribute_name=Device Database Table Size $(table_names)" };
-
-      # Now that we have collected the __promiselog tables we can inventory the sum of the partitions
-
-      "table[public.__promiselog]"
-        string => format( "%d", sum( getvalues( promise_log ) ) ),
-        meta => { "inventory", "attribute_name=Device Database Table Size $(table_names)" };
+        "table[public.__promiselog]"
+          string => format( "%d", sum( getvalues( promise_log ) ) ),
+          meta => { "inventory", "attribute_name=Device Database Table Size $(query_result[$(table_names)][relation])" };
 
     cfengine.enterprise_edition.policy_server.(DEBUG|DEBUG_inventory_databse_table_sizes|verbose_mode)::
-
-      "ti" slist => getindices( table );
+        "ti" slist => getindices( table );
 
   commands:
     cfengine.enterprise_edition.policy_server::
@@ -76,4 +45,10 @@ bundle agent inventory_top_tables_by_size
   reports:
     cfengine.enterprise_edition.policy_server.(DEBUG|DEBUG_inventory_databse_table_sizes|verbose_mode)::
       "$(ti) == $(table[$(ti)])";
+
+}
+bundle agent __main__
+{
+  methods:
+      "inventory_top_tables_by_size";
 }
