@@ -1,6 +1,7 @@
 bundle agent inventory_top_tables_by_size
 {
   vars:
+    cfengine.enterprise_edition.policy_server::
       "query_output" string => "$(sys.statedir)/cfdb-table-size.csv";
 
       "psql_table_size_query"
@@ -61,16 +62,17 @@ bundle agent inventory_top_tables_by_size
         string => format( "%d", sum( getvalues( promise_log ) ) ),
         meta => { "inventory", "attribute_name=Device Database Table Size $(table_names)" };
 
-    DEBUG|DEBUG_inventory_databse_table_sizes|verbose_mode::
+    cfengine.enterprise_edition.policy_server.(DEBUG|DEBUG_inventory_databse_table_sizes|verbose_mode)::
 
       "ti" slist => getindices( table );
 
   commands:
+    cfengine.enterprise_edition.policy_server::
       "$(psql_cmd)"
         arglist => { @(psql_cmd_opts) },
         contain => in_shell;
 
   reports:
-    DEBUG|DEBUG_inventory_databse_table_sizes|verbose_mode::
+    cfengine.enterprise_edition.policy_server.(DEBUG|DEBUG_inventory_databse_table_sizes|verbose_mode)::
       "$(ti) == $(table[$(ti)])";
 }
