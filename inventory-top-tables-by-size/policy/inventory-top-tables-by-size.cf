@@ -31,7 +31,7 @@ bundle agent inventory_top_tables_by_size
 
         "table[public.__promiselog]"
           string => format( "%d", sum( getvalues( promise_log ) ) ),
-          meta => { "inventory", "attribute_name=Device Database Table Size $(query_result[$(table_names)][relation])" };
+          meta => { "inventory", "attribute_name=Device Database Table Size public.__promiselog" };
 
     cfengine.enterprise_edition.policy_server.(DEBUG|DEBUG_inventory_databse_table_sizes|verbose_mode)::
         "ti" slist => getindices( table );
