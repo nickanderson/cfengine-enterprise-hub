@@ -11,3 +11,18 @@ The top 20 tables are inventoried.
 * Configuration
 
 Currently no configuration options are exposed.
+
+* Reporting
+:PROPERTIES:
+:ID:       eeb4ed8a-f5cc-435a-b6dd-9bcc801268c3
+:END:
+
+Custom report showing the inventoried tables and their sizes.
+
+#+begin_src  sql
+  SELECT keyname,CAST(value AS INTEGER) AS bytes FROM inventory WHERE keyname LIKE 'default.inventory_top_tables_by_size.table%' ORDER BY bytes DESC
+#+end_src
+
+[[./data/ee/b4ed8a-f5cc-435a-b6dd-9bcc801268c3/2022-05-12_16-38-23_2022-05-12_16-38-05.png]]
+
+
