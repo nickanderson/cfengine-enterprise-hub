@@ -1,4 +1,6 @@
 bundle agent inventory_top_tables_by_size
+# @brief Inventory the tables using the most space
+# @inventory Device Database Table Size $(table_names) - Size in bytes of each table
 {
   vars:
     cfengine.enterprise_edition.policy_server::
