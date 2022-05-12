@@ -9,7 +9,7 @@ bundle agent inventory_top_tables_by_size
         pg_total_relation_size(C.oid) AS "total_size"
         FROM pg_class C
         LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace)
-        WHERE nspname NOT IN ('pg_catalog', 'information_schema')
+        WHERE nspname NOT IN ('pg_catalog', 'information_schema', 'pg_toast')
         AND C.relkind <> 'i'
         ORDER BY pg_total_relation_size(C.oid) DESC
         Limit 20) t;`;
