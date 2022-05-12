@@ -39,8 +39,7 @@ bundle agent inventory_top_tables_by_size
                                       inf,               # Max Entries
                                       inf );             # Max Bytes
 
-      "table_names" slist => getindices( d );
-
+      "table_names" slist => getindices( query_result );
 
       # The __promiselog table is partitioned and made up of many other tables
       # named for the result and date. It's more useful to have information
