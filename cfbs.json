@@ -1,0 +1,18 @@
+{
+  "name": "CFEngine Enterprise Hub related Modules",
+  "description": "This repo provides modules related to CFEngine Enterprise Hubs.",
+  "type": "module-repo",
+  "provides": {
+    "inventory-top-tables-by-size": {
+      "description": "This module inventories the largest tables in the CFEngine Enterprise Hub Database.",
+      "tags": ["inventory"],
+      "subdirectory": "./inventory-top-tables-by-size/",
+      "by": "https://github.com/nickanderson",
+      "repo": "https://github.com/nickanderson/cfengine-enterprise-hub",
+      "steps": [
+        "copy ./policy/inventory-top-tables-by-size.cf services/cfengine-enterprise-hub/inventory-top-tables-by-size.cf",
+        "json cfbs/def.json def.json"
+      ]
+    }
+  }
+}

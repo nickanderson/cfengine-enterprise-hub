@@ -1,0 +1,6 @@
+#+Title: CFEngine Enterprise Hub modules
+
+This repository hosts various modules related to CFEngine Enterprise Hubs.
+
+* Modules Provided
+- [[./inventory-top-tables-by-size/][inventory-top-tables-by-size]]

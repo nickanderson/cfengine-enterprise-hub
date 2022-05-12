@@ -1,0 +1,6 @@
+{
+  "vars": {
+    "control_common_bundlesequence_end": ["inventory_top_tables_by_size"]
+  },
+  "inputs": ["services/cfengine-enterprise-hub/inventory-top-tables-by-size.cf"]
+}

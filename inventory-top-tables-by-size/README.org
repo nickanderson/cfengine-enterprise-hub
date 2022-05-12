@@ -1,0 +1,13 @@
+This module provides inventory for CFEngine Enterprise Hub Database Tables. 
+
+* Inventory
+
+The top 20 tables are inventoried.
+
+- Device Database Table Size =<TABLE NAME>= :: Size in bytes of =<TABLE NAME>=.
+
+    Note: Tables with names matching  =__promiselog_.*= are aggregated and inventoried as =public.__promiselog= as the sum of matching tables.
+
+* Configuration
+
+Currently no configuration options are exposed.
